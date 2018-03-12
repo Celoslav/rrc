@@ -7,10 +7,10 @@ var chokidar = require('chokidar');
 var paths = {
   examples: path.join(__dirname, '../src', 'docs', 'examples'),
   components: path.join(__dirname, '../src', 'components'),
-  output: path.join(__dirname, '..config', 'componentData.js'),
+  output: path.join(__dirname, '../config', 'componentData.js'),
 }
 
-const enableWatchMode = process.argv.slice(2) == '--watch';
+const enableWatchMode = process.argv.slice(2) === '--watch';
 if (enableWatchMode) {
   chokidar.watch([paths.examples, paths.components]).on('change', function (event, path) {
     generate(path);
@@ -21,11 +21,11 @@ if (enableWatchMode) {
 
 function generate(paths) {
   var errors = [];
-  var componentData = getDirectories(paths.components).map(function (componentName) {
+  var componentData = getDirectories(paths.components).map(function(componentName) {
     try {
       return getComponentData(paths, componentName)
     } catch (error) {
-      errors.push('An error occurred while attempting to generate metadata for' + componentName + '.' + error);
+      return errors.push('An error occurred while attempting to generate metadata for' + componentName + '.' + error);
     }
   });
   writeFile(paths.output, "module.exports = " + JSON.stringify(errors.length ? errors : componentData));
@@ -38,7 +38,7 @@ function getComponentData(paths, componentName) {
     description: info.description,
     props: info.props,
     code: content,
-    expamples: getExampleData(paths.expamples, componentName),
+    examples: getExampleData(paths.examples, componentName),
   }
 }
 function getExampleData(examplesPath, componentName) {
@@ -57,7 +57,7 @@ function getExampleData(examplesPath, componentName) {
 function getExampleFiles(examplesPath, componentName) {
   var exampleFiles = [];
   try {
-    exampleFiles = getFiles(path.join(examplePath, componentName));
+    exampleFiles = getFiles(path.join(examplesPath, componentName));
   } catch (error) {
     console.log(chalk.red(`No examples found for ${componentName}.`));
   }
@@ -66,7 +66,7 @@ function getExampleFiles(examplesPath, componentName) {
 
 function getDirectories(filepath) {
   return fs.readdirSync(filepath).filter(function (file) {
-    return fs.statSync(path.join(firepath, file)).isDirectory();
+    return fs.statSync(path.join(filepath, file)).isDirectory();
   });
 }
 
@@ -81,6 +81,6 @@ function writeFile(filepath, content) {
     err ? console.log(chalk.red(err)) : console.log(chalk.green("Component data saved."));
   });
 }
-function readFile(fielPath) {
+function readFile(filePath) {
   return fs.readFileSync(filePath, 'utf-8');
 }
